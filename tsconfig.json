@@ -5,6 +5,7 @@
     "sourceMap": false,
     "declaration": true
   },
+  "typeRoots": [ "node_modules/@types" ],
   "files": [
     "index.ts"
   ],

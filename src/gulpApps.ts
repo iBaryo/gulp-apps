@@ -1,4 +1,4 @@
-import {ITaskRunner, TaskNameConverter, ITask, IApp} from "./interfaces";
+import {ITaskRunner, TaskNameConverter, ITask, IApp, gulpApps} from "./interfaces";
 
 const runSeqGen = require('run-sequence');
 
