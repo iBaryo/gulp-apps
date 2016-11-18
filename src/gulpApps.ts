@@ -28,7 +28,7 @@ export default {
 
                         _runners[app.name] = {
                             run: (task: string) =>
-                                new Promise<void>((resolve, reject) => runSequence(task, e => e ? reject(e) : resolve()))
+                                new Promise<void>((resolve, reject) => runSequence(nameConverter(task), e => e ? reject(e) : resolve()))
                         };
                     }
                     return _runners[app.name];
