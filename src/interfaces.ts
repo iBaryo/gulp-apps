@@ -1,3 +1,12 @@
+export interface gulpApps {
+    use: (gulp) => {
+        initTasks: <T extends IApp>(tasks: ITask<T>[]) => {
+            get: (appName : string) => ITaskRunner,
+            for: (app: T, taskNameConverter? : TaskNameConverter) => ITaskRunner
+        }
+    }
+}
+
 export interface ITaskRunner {
     run: RunTaskFunction;
 }

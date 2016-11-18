@@ -6,7 +6,7 @@ const defaultConverter: TaskNameConverter = (appName, taskName) => `${appName}-$
 
 const _runners: {[name: string]: ITaskRunner} = {};
 
-export default {
+module.exports = {
     use: (gulp) => {
         const runSequence: Function = runSeqGen.use(gulp);
 
