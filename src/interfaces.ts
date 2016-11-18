@@ -12,7 +12,7 @@ export interface ITaskRunner {
 }
 
 export interface RunTaskFunction {
-    (task : string) : Promise<void>;
+    (task : string) : Promise<any>;
 }
 
 export interface ITask<T extends IApp> {

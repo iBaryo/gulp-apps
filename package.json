@@ -11,10 +11,10 @@
   "license": "MIT",
   "dependencies": {
     "gulp": "^3.9.1",
-    "run-sequence": "^1.2.2",
-    "typescript": "^2.0.10"
+    "run-sequence": "^1.2.2"
   },
   "devDependencies": {
+    "typescript": "^2.0.10",
     "@types/node": "^6.0.48",
     "@types/es6-shim": "^0.31.32",
     "@types/node": "^6.0.48"
