@@ -4,6 +4,7 @@
   "description": "running same apps for multiple apps",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "iBaryo",
@@ -12,5 +13,8 @@
     "gulp": "^3.9.1",
     "run-sequence": "^1.2.2",
     "typescript": "^2.0.10"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.48"
   }
 }
