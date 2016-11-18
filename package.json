@@ -1,0 +1,16 @@
+{
+  "name": "gulp-apps",
+  "version": "1.0.0",
+  "description": "running same apps for multiple apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "iBaryo",
+  "license": "MIT",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "run-sequence": "^1.2.2",
+    "typescript": "^2.0.10"
+  }
+}
