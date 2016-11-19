@@ -2,6 +2,10 @@ export interface ITaskRunner {
     run: RunTaskFunction;
 }
 
+export interface  ITaskGroupRunner extends ITaskRunner {
+    runInSequence: RunTaskFunction;
+}
+
 export interface RunTaskFunction {
     (task : string) : Promise<any>;
 }

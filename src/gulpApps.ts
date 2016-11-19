@@ -1,4 +1,4 @@
-import {ITaskRunner, TaskNameConverter, ITask, IApp } from "./interfaces";
+import {ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner} from "./interfaces";
 
 const runSeqGen = <any>require('run-sequence');
 const defaultConverter : TaskNameConverter = (appName, taskName) => `${appName}-${taskName}`;
@@ -7,23 +7,34 @@ const _runners : {[name : string] : ITaskRunner} = {};
 
 export class AppTasks<T extends IApp> {
 
-    constructor(private _gulp, private _runSeq, private _tasks : ITask<T>[]) {
+    constructor(private _gulp, private _runSeq, private _tasks : ITask<T>[], private _taskNameConverter = defaultConverter) {
     }
 
     public addTask = (task : ITask<T>) => this._tasks.push(task);
     public get = (appName : string) => _runners[appName];
 
-    public forAll(apps : T[], taskNameConverter? : TaskNameConverter) : ITaskRunner {
-        const runners = apps.map(app => this.for(app, taskNameConverter));
+    public forAll(apps : T[]) : ITaskGroupRunner {
+        apps.forEach(app => this.for(app));
+        const nameConverter = (task) => apps.map(app => this._taskNameConverter(app.name,task));
+
         return {
-            run: (task : string) => Promise.all(runners.map(runner => runner.run(task)))
+            run: (task : string) => new Promise(resolve => this._runSeq(nameConverter(task), resolve)),
+            runInSequence: (task : string) => new Promise(resolve => this._runSeq(...nameConverter(task), resolve))
         };
+
+        // return {
+        //     run: (task : string) => Promise.all(runners.map(runner => runner.run(task))),
+        //     runSync: async (task : string) => {
+        //         for (const runner of runners)
+        //             await runner.run(task);
+        //     }
+        // };
     }
 
-    public for(app : T, taskNameConverter = defaultConverter) : ITaskRunner {
+    public for(app : T) : ITaskRunner {
 
         if (!_runners[app.name]) {
-            const nameConverter = (taskName : string) => taskNameConverter(app.name, taskName);
+            const nameConverter = (taskName : string) => this._taskNameConverter(app.name, taskName);
 
             this._tasks.forEach(task =>
                 this._gulp.task(
@@ -49,7 +60,7 @@ export const gulpApps = {
         const runSequence : Function = runSeqGen.use(gulp);
 
         return {
-          initTasks: <T extends IApp>(tasks : ITask<T>[]) => new AppTasks<T>(gulp, runSequence, tasks)
+          initTasks: <T extends IApp>(tasks : ITask<T>[], taskNameConverter? : TaskNameConverter) => new AppTasks<T>(gulp, runSequence, tasks, taskNameConverter)
         };
     }
 };

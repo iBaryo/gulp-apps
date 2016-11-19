@@ -16,10 +16,10 @@ describe('gulp-apps', () => {
 
         let mockNames = ['1', '2', '3'];
 
-        mockApps = mockNames.map(name => ({name: `mock app ${name}`}  as IApp));
+        mockApps = mockNames.map(name => ({name: `mock_app_${name}`}  as IApp));
         mockApp = mockApps[0];
 
-        let mockTaskNames = mockNames.map(name => `mock task ${name}`);
+        let mockTaskNames = mockNames.map(name => `mock_task_${name}`);
         mockTasks = mockTaskNames.map((task, index) => ({
                 name: task,
                 dependencies: mockTaskNames.reduce((deps, depTask, depIndex) => {
@@ -60,12 +60,12 @@ describe('gulp-apps', () => {
                 args[args.length - 1]();
             });
             mockConverter = jasmine.createSpy('converter').and.callFake((app, task) => `${app}-${task}`);
-            appTasks = new AppTasks<IApp>(mockGulp, mockRunSeq, mockTasks);
+            appTasks = new AppTasks<IApp>(mockGulp, mockRunSeq, mockTasks, mockConverter);
         });
 
         describe('"for" method', () => {
             let taskRunner: ITaskRunner;
-            beforeEach(() => taskRunner = appTasks.for(mockApp, mockConverter));
+            beforeEach(() => taskRunner = appTasks.for(mockApp));
 
             it('should define tasks specific for the app', () => {
                 expect(mockGulp.task).toHaveBeenCalledTimes(mockTasks.length);
@@ -135,16 +135,31 @@ describe('gulp-apps', () => {
         });
 
         describe('"forAll" method', () => {
-            it('should create runners for all given apps', (done) => {
-                spyOn(appTasks, 'for').and.returnValue({run: () => Promise.resolve()} as ITaskRunner);
-
+            it('should create group runners for all given apps', () => {
                 const runner = appTasks.forAll(mockApps);
 
                 expect(runner).toBeTruthy();
                 expect(runner.run).toBeTruthy();
-                runner.run(mockTasks[0].name)
-                    .then(done)
-                    .catch(fail);
+                expect(runner.runInSequence).toBeTruthy();
+            });
+            it('should able to run task async', (done) => {
+                const taskName = mockTasks[0].name;
+                appTasks.forAll(mockApps).run(taskName).then(()=> {
+                    expect(mockRunSeq).toHaveBeenCalledTimes(1);
+                    expect((mockRunSeq as Spy).calls.mostRecent().args[0]).toEqual(mockApps.map(app => mockConverter(app.name,taskName)));
+                    done();
+                });
+            });
+            it('should able to run task sync', (done) => {
+                const taskName = mockTasks[0].name;
+                appTasks.forAll(mockApps).runInSequence(taskName).then(()=> {
+                    expect(mockRunSeq).toHaveBeenCalledTimes(1);
+                    const args =(mockRunSeq as Spy).calls.mostRecent().args;
+                    args.length--; // remove last argument (done callback)
+                    expect(args.length).toBe(mockApps.length);
+                    mockApps.forEach((app,i)=> expect(args[i]).toBe(mockConverter(app.name,taskName)));
+                    done();
+                });
             });
         });
 
