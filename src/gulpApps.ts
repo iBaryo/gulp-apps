@@ -1,11 +1,11 @@
-import {ITaskRunner, TaskNameConverter, ITask, IApp, gulpApps} from "./interfaces";
+import {ITaskRunner, TaskNameConverter, ITask, IApp } from "./interfaces";
 
 const runSeqGen = <any>require('run-sequence');
 const defaultConverter : TaskNameConverter = (appName, taskName) => `${appName}-${taskName}`;
 
 const _runners : {[name : string] : ITaskRunner} = {};
 
-class AppTasks<T extends IApp> {
+export class AppTasks<T extends IApp> {
 
     constructor(private _gulp, private _runSeq, private _tasks : ITask<T>[]) {
     }
@@ -43,7 +43,8 @@ class AppTasks<T extends IApp> {
     }
 }
 
-module.exports = {
+export const gulpApps = {
+    clear: () => Object.keys(_runners).forEach(key => delete _runners[key]),
     use: (gulp) => {
         const runSequence : Function = runSeqGen.use(gulp);
 

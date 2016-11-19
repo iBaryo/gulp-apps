@@ -4,8 +4,8 @@
   "description": "running same apps for multiple apps",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "gulp compile",
+    "test": "gulp"
   },
   "author": "iBaryo",
   "license": "MIT",
@@ -14,9 +14,11 @@
     "run-sequence": "^1.2.2"
   },
   "devDependencies": {
-    "typescript": "^2.0.10",
-    "@types/node": "^6.0.48",
     "@types/es6-shim": "^0.31.32",
-    "@types/node": "^6.0.48"
+    "@types/jasmine": "^2.5.38",
+    "@types/node": "^6.0.48",
+    "gulp-jasmine": "^2.4.2",
+    "gulp-tsc": "^1.2.5",
+    "typescript": "^2.0.10"
   }
 }
