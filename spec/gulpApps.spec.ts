@@ -1,4 +1,4 @@
-import {gulpApps, AppTasks} from "../src/gulpApps";
+import {AppTasks} from "../src/gulpApps";
 import {IApp, ITask, ITaskRunner} from "../src/interfaces";
 import Spy = jasmine.Spy;
 
@@ -32,30 +32,13 @@ describe('gulp-apps', () => {
         );
     });
 
-    describe('accessor', () => {
-        it('dummy', () => {
-            expect(gulpApps).toBeTruthy();
-        });
-
-        it('should init with gulp and prepare for init tasks', () => {
-            expect(gulpApps.use(mockGulp)).toBeTruthy();
-            expect(gulpApps.use(mockGulp).initTasks).toBeTruthy();
-        });
-
-        it('should init tasks', () => {
-            const appTasks = gulpApps.use(mockGulp).initTasks<IApp>(mockTasks);
-
-            expect(appTasks).toEqual(jasmine.any(AppTasks));
-        });
-    });
-
     describe('AppTasks', () => {
         let appTasks: AppTasks<IApp>;
         let mockRunSeq: Function;
         let mockConverter;
 
         beforeEach(() => {
-            gulpApps.clear();
+            AppTasks.clear();
             mockRunSeq = jasmine.createSpy('run sequence').and.callFake((...args) => {
                 args[args.length - 1]();
             });
