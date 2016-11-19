@@ -19,6 +19,6 @@
     "@types/node": "^6.0.48",
     "gulp-jasmine": "^2.4.2",
     "gulp-tsc": "^1.2.5",
-    "typescript": "^2.0.10"
+    "typescript": "^2.1.0"
   }
 }
