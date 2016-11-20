@@ -1,6 +1,6 @@
 {
   "name": "gulp-apps",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "running same apps for multiple apps",
   "main": "index.js",
   "scripts": {
