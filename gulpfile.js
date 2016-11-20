@@ -11,9 +11,8 @@ gulp.task('compile', function(){
             "target": "es5",
             "sourceMap": false,
             "declaration": true,
-            "exclude": [
-                "node_modules"
-            ]
+            "experimentalDecorators": true
+
         }))
         .pipe(gulp.dest('./'));
 });

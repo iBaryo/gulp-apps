@@ -3,7 +3,8 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": false,
-    "declaration": true
+    "declaration": true,
+    "experimentalDecorators": true
   },
   "include" : [
     "**/*.ts"
