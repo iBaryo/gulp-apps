@@ -21,7 +21,7 @@ describe('gulp-apps', () => {
 
         let mockTaskNames = mockNames.map(name => `mock_task_${name}`);
         mockTasks = mockTaskNames.map((task, index) => ({
-                name: task,
+                taskName: task,
                 dependencies: mockTaskNames.reduce((deps, depTask, depIndex) => {
                     if (depIndex < index) // each mock task depends on the ones before it
                         deps.push(depTask);
@@ -54,7 +54,7 @@ describe('gulp-apps', () => {
                 expect(mockGulp.task).toHaveBeenCalledTimes(mockTasks.length);
 
                 (mockGulp.task as Spy).calls.all().forEach((call, index) => {
-                    expect(call.args[0]).toBe(mockConverter(mockApp.name, mockTasks[index].name));
+                    expect(call.args[0]).toBe(mockConverter(mockApp.name, mockTasks[index].taskName));
                 });
             });
             it('should define task dependencies for tasks of the same app', () => {
@@ -79,11 +79,11 @@ describe('gulp-apps', () => {
             describe('task runner', () => {
                 let taskName: string;
                 beforeEach(() => {
-                    taskName = mockTasks[0].name;
+                    taskName = mockTasks[0].taskName;
                 });
 
                 it('should return a promise', () => {
-                    expect(taskRunner.run(mockTasks[0].name)).toEqual(jasmine.any(Promise));
+                    expect(taskRunner.run(taskName)).toEqual(jasmine.any(Promise));
                 });
                 it('should run task for original app', (done) => {
                     taskRunner.run(taskName).then(() => {
@@ -126,7 +126,7 @@ describe('gulp-apps', () => {
                 expect(runner.runInSequence).toBeTruthy();
             });
             it('should able to run task async', (done) => {
-                const taskName = mockTasks[0].name;
+                const taskName = mockTasks[0].taskName;
                 appTasks.forAll(mockApps).run(taskName).then(()=> {
                     expect(mockRunSeq).toHaveBeenCalledTimes(1);
                     expect((mockRunSeq as Spy).calls.mostRecent().args[0]).toEqual(mockApps.map(app => mockConverter(app.name,taskName)));
@@ -134,7 +134,7 @@ describe('gulp-apps', () => {
                 });
             });
             it('should able to run task sync', (done) => {
-                const taskName = mockTasks[0].name;
+                const taskName = mockTasks[0].taskName;
                 appTasks.forAll(mockApps).runInSequence(taskName).then(()=> {
                     expect(mockRunSeq).toHaveBeenCalledTimes(1);
                     const args =(mockRunSeq as Spy).calls.mostRecent().args;
@@ -150,7 +150,7 @@ describe('gulp-apps', () => {
             it('should create added task for newly added apps', () => {
                 // Arrange
                 const newTask: ITask<IApp> = {
-                    name: 'new task',
+                    taskName: 'new task',
                     fn: jasmine.createSpy('new task')
                 };
                 const newApp: IApp = {name: 'new_app'};
@@ -161,9 +161,9 @@ describe('gulp-apps', () => {
                 // Assert
                 const runner = appTasks.for(newApp);
 
-                expect(mockGulp.task).toHaveBeenCalledTimes(mockTasks.length);
+                expect(mockGulp.task).toHaveBeenCalledTimes(mockTasks.length + 1);
                 expect(
-                    mockGulp.task.calls.all().filter(call => call.args[0] == mockConverter(newApp.name, newTask.name)).length
+                    mockGulp.task.calls.all().filter(call => call.args[0] == mockConverter(newApp.name, newTask.taskName)).length
                 ).toBe(1);
             });
         });
