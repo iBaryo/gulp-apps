@@ -74,7 +74,7 @@ export class AppTasks<T extends IApp> {
             const appContext = new this._tasksClass(app);
             const nameConverter = (taskName: string) => this._taskNameConverter(app.name, taskName);
 
-            this.getGulpTasks().forEach(task =>
+            this.getGulpTasks().forEach(task =>     // maybe cache gulpTasks?
                 this._gulp.task(
                     nameConverter(task.taskName),
                     !task.dependencies ? [] : task.dependencies.map(nameConverter),
