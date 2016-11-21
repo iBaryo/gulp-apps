@@ -6,6 +6,10 @@ export interface IAppContext<T extends IApp> {
     app : T;
 }
 
+    export interface IAppContextClass<T extends IApp> {
+    new (app : T) : IAppContext<T>;
+}
+
 export type TaskNameConverter = (appName: string, taskName: string) => string;
 
 export interface ITaskRunner {
@@ -34,5 +38,5 @@ export interface ITask<T extends IApp> extends IGulpTask {
 }
 
 export interface ITaskOf<T extends IApp> extends IGulpTask, IAppTaskMethod<T>  {
-    isTask: boolean;
+    isPublicTask: boolean;
 }

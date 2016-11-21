@@ -1,63 +1,100 @@
 import {createDecorator} from "../src/decorator";
 import {AppTasksDecorator} from "../src/decorator";
-import {IApp, ITask} from "../src/interfaces";
+import {IApp, ITask, ITaskOf, IAppContextClass, IAppContext} from "../src/interfaces";
 import {AppTasks} from "../src/gulpApps";
 
 describe('decorator', ()=> {
     let mockGulp;
     let mockRunSeq: Function;
-    let GulpAppsTask : AppTasksDecorator<IApp>;
-    let appTasks : AppTasks<IApp>;
-
+    let definedTasks : {[taskName : string] : { deps: string[], fn : Function}};
+    let mockApp : IApp;
+    let GulpApps : AppTasksDecorator<IApp>;
+    let mockConverter: (app, task) => string;
 
     beforeEach(()=> {
+        AppTasks.clear();
+        mockApp = {name:'app'};
+        definedTasks = {};
         mockGulp = {
-            task: jasmine.createSpy('gulp task spy')
+            task: (name, deps, fn) => {
+                definedTasks[name] = {deps, fn};
+            }
         };
-        mockRunSeq = jasmine.createSpy('run sequence');
+        mockRunSeq = (...args) => definedTasks[args[0]].fn.call(null, args[args.length-1]);
+        mockConverter = jasmine.createSpy('converter').and.callFake((app, task) => task);
 
-        GulpAppsTask = createDecorator<IApp>(mockGulp, mockRunSeq);
-        appTasks = GulpAppsTask.getTasks();
-        spyOn(appTasks, 'addTask');
+        GulpApps = createDecorator<IApp>(mockGulp, mockRunSeq, mockConverter);
     });
 
     it('should add task according to method taskName', ()=> {
+        @GulpApps()
         class Tasks {
-            @GulpAppsTask()
+            @GulpApps.task()
             public task() {
             }
         }
 
-        expect(appTasks.addTask).toHaveBeenCalledWith({
-            taskName: 'task',
-            dependencies: undefined,
-            fn: Tasks.prototype.task
-        } as ITask<IApp>);
+        GulpApps.getTasks().for(mockApp);
+        const task = definedTasks['task'];
+        expect(task).toBeTruthy();
     });
 
     it('should add task with dependencies', ()=> {
+        const deps = ['task'];
+
+        @GulpApps()
         class Tasks {
-            @GulpAppsTask(['task'])
+            @GulpApps.task(deps)
             public taskWithDependencies() {}
         }
+        GulpApps.getTasks().for(mockApp);
 
-        expect(appTasks.addTask).toHaveBeenCalledWith({
-            taskName: 'taskWithDependencies',
-            dependencies: ['task'],
-            fn: Tasks.prototype.taskWithDependencies
-        } as ITask<IApp>);
+        expect(definedTasks['taskWithDependencies'].deps).toEqual(deps);
     });
 
     it('should add task with different taskName', ()=> {
+        @GulpApps()
         class Tasks {
-            @GulpAppsTask(['task'], 'different-taskName')
+            @GulpApps.task(['task'], 'different-taskName')
             public taskWithDependencies() {}
         }
 
-        expect(appTasks.addTask).toHaveBeenCalledWith({
-            taskName: 'different-taskName',
-            dependencies: ['task'],
-            fn: Tasks.prototype.taskWithDependencies
-        } as ITask<IApp>);
+        GulpApps.getTasks().for(mockApp);
+        expect(definedTasks['different-taskName']).toBeTruthy();
+    });
+
+    it('should allow access to all methods in class', (done)=> {
+        @GulpApps()
+        class Tasks {
+            @GulpApps.task()
+            public task() {
+                this.privateMethod();
+            }
+
+            private privateMethod() {
+                done();
+            }
+        }
+
+        GulpApps.getTasks().for(mockApp).run('task');
+    });
+
+    it('should expose app context', (done)=> {
+        @GulpApps()
+        class Tasks implements IAppContext<IApp>{
+            constructor(public app : IApp) {}
+
+            @GulpApps.task()
+            public task() {
+                this.privateMethod();
+            }
+
+            private privateMethod() {
+                expect(this.app).toBe(mockApp);
+                done();
+            }
+        }
+
+        GulpApps.getTasks().for(mockApp).run('task');
     });
 });

@@ -1,6 +1,7 @@
-import {ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner} from "./interfaces";
+import {
+    ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner, IAppContextClass
+} from "./interfaces";
 import {ITaskOf} from "./interfaces";
-import {IAppContext} from "./interfaces";
 
 const defaultConverter: TaskNameConverter = (appName, taskName) => `${appName}-${taskName}`;
 
@@ -10,37 +11,43 @@ export class AppTasks<T extends IApp> {
 
     static clear = () => Object.keys(_runners).forEach(key => delete _runners[key]);
 
-    private _tasks : ITaskOf<T>[] = [];
+    private _tasksClass : IAppContextClass<T>;
 
-    constructor(gulp, runSequence, tasksClass :Function, taskNameConverter? : TaskNameConverter);
-    constructor(gulp, runSequence, tasks :ITask<T>[], taskNameConverter? : TaskNameConverter);
-    constructor(private _gulp, private _runSeq, tasks: ITask<T>[]|Function, private _taskNameConverter = defaultConverter) {
-        if (typeof tasks == 'function')
-            this._tasks = this.convertClassToTasks(tasks);
-        else
-            this._tasks = tasks.map(this.convertTaskObjectToFunc);
+    constructor(gulp, runSequence, tasksClass: IAppContextClass<T>, taskNameConverter?: TaskNameConverter);
+    constructor(gulp, runSequence, tasks: ITask<T>[], taskNameConverter?: TaskNameConverter);
+    constructor(private _gulp, private _runSeq, tasks: ITask<T>[]|IAppContextClass<T>, private _taskNameConverter = defaultConverter) {
+        if (typeof tasks == 'function') {
+            this._tasksClass = tasks;
+        }
+        else {
+            this._tasksClass = class AppContext {
+                constructor(public app : T) {}
+            };
+
+            tasks.forEach(task => this.addTask(task));
+        }
     }
 
-    private convertClassToTasks(appTasksClass: Function) : ITaskOf<T>[] {
-        return Object.getOwnPropertyNames(appTasksClass.prototype)
+    private getGulpTasks(): ITaskOf<T>[] {
+        return Object.getOwnPropertyNames(this._tasksClass.prototype)
             .reduce((tasks, prop) => {
-                const candidate = appTasksClass.prototype[prop] as Function&ITaskOf<T>;
-                if (typeof candidate == 'function' && candidate.isTask)
+                const candidate = this._tasksClass.prototype[prop] as Function&ITaskOf<T>;
+                if (typeof candidate == 'function' && candidate.isPublicTask)
                     tasks.push(candidate);
 
                 return tasks;
             }, [] as ITaskOf<T>[])
     }
 
-    private convertTaskObjectToFunc(task : ITask<T>) : ITaskOf<T> {
+    private convertTaskObjectToFunc(task: ITask<T>): ITaskOf<T> {
         const fn = task.fn as ITaskOf<T>;
-        fn.dependencies = task.dependencies;
+        fn.isPublicTask = true;
         fn.taskName = task.taskName;
-        fn.isTask = true;
+        fn.dependencies = task.dependencies;
         return fn;
     }
 
-    public addTask = (task: ITask<T>) => this._tasks.push(this.convertTaskObjectToFunc(task));
+    public addTask = (task: ITask<T>) => this._tasksClass.prototype[task.taskName] = this.convertTaskObjectToFunc(task); // will effect only newly added apps
     public get = (appName: string) => _runners[appName];
 
     public forAll(apps: T[]): ITaskGroupRunner {
@@ -64,13 +71,14 @@ export class AppTasks<T extends IApp> {
     public for(app: T): ITaskRunner {
 
         if (!_runners[app.name]) {
+            const appContext = new this._tasksClass(app);
             const nameConverter = (taskName: string) => this._taskNameConverter(app.name, taskName);
 
-            this._tasks.forEach(task =>
+            this.getGulpTasks().forEach(task =>
                 this._gulp.task(
                     nameConverter(task.taskName),
                     !task.dependencies ? [] : task.dependencies.map(nameConverter),
-                    task.bind({app} as IAppContext<T>)
+                    task.bind(appContext)
                 )
             );
 
