@@ -1,9 +1,9 @@
 import {createDecorator} from "../src/decorator";
 import {AppTasksDecorator} from "../src/decorator";
-import {IApp} from "../src/interfaces";
+import {IApp, ITask} from "../src/interfaces";
 import {AppTasks} from "../src/gulpApps";
 
-xdescribe('decorator', ()=> {
+describe('decorator', ()=> {
     let mockGulp;
     let mockRunSeq: Function;
     let GulpAppsTask : AppTasksDecorator<IApp>;
@@ -29,10 +29,10 @@ xdescribe('decorator', ()=> {
         }
 
         expect(appTasks.addTask).toHaveBeenCalledWith({
-            name: 'task',
+            taskName: 'task',
             dependencies: undefined,
             fn: Tasks.prototype.task
-        });
+        } as ITask<IApp>);
     });
 
     it('should add task with dependencies', ()=> {
@@ -42,10 +42,10 @@ xdescribe('decorator', ()=> {
         }
 
         expect(appTasks.addTask).toHaveBeenCalledWith({
-            name: 'taskWithDependencies',
+            taskName: 'taskWithDependencies',
             dependencies: ['task'],
             fn: Tasks.prototype.taskWithDependencies
-        });
+        } as ITask<IApp>);
     });
 
     it('should add task with different taskName', ()=> {
@@ -55,9 +55,9 @@ xdescribe('decorator', ()=> {
         }
 
         expect(appTasks.addTask).toHaveBeenCalledWith({
-            name: 'different-taskName',
+            taskName: 'different-taskName',
             dependencies: ['task'],
             fn: Tasks.prototype.taskWithDependencies
-        });
+        } as ITask<IApp>);
     });
 });

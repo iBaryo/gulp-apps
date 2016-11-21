@@ -1,5 +1,5 @@
 import {AppTasks} from "../src/gulpApps";
-import {IApp, ITask, ITaskRunner} from "../src/interfaces";
+import {IApp, ITask, ITaskRunner, IAppContext} from "../src/interfaces";
 import Spy = jasmine.Spy;
 
 describe('gulp-apps', () => {
@@ -56,6 +56,26 @@ describe('gulp-apps', () => {
                 (mockGulp.task as Spy).calls.all().forEach((call, index) => {
                     expect(call.args[0]).toBe(mockConverter(mockApp.name, mockTasks[index].taskName));
                 });
+            });
+            it('should expose the app object as part of the task\'s context', (done)=> {
+                // Arrange
+                AppTasks.clear();
+                appTasks = new AppTasks<IApp>(mockGulp, mockRunSeq, [{
+                    taskName: 'mock',
+                    fn: function(this: IAppContext<IApp>, taskDone) {
+                        expect(this.app).toBe(mockApp);
+                        taskDone();
+                    }
+                }],
+                    mockConverter);
+
+                // Act
+                appTasks.for(mockApp);
+
+                // Assert
+                const gulpTaskArgs = (mockGulp.task as Spy).calls.mostRecent().args;
+                const taskFn = gulpTaskArgs[gulpTaskArgs.length-1];
+                taskFn(done);
             });
             it('should define task dependencies for tasks of the same app', () => {
                 (mockGulp.task as Spy).calls.all().forEach((call, index) => {
