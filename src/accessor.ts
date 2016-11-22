@@ -1,10 +1,10 @@
 import {AppTasks} from "./gulpApps";
 import {IApp, ITask, TaskNameConverter} from "./interfaces";
-import {createDecorator, AppTasksDecorator} from "./decorator";
+import {createDecorator, IAppTasksDecorator} from "./decorator";
 
 export interface gulpAppsAccessor {
     initTasks<T extends IApp>(tasks : ITask<T>[], taskNameConverter? : TaskNameConverter) : AppTasks<T>;
-    getDecorator<T extends IApp>(taskNameConverter? : TaskNameConverter) : AppTasksDecorator<T>;
+    getDecorator<T extends IApp>(taskNameConverter? : TaskNameConverter) : IAppTasksDecorator<T>;
 }
 
 const runSeqGen = <any>require('run-sequence');

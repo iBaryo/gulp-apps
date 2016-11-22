@@ -1,6 +1,6 @@
 import {createDecorator} from "../src/decorator";
-import {AppTasksDecorator} from "../src/decorator";
-import {IApp, ITask, ITaskOf, IAppContextClass, IAppContext} from "../src/interfaces";
+import {IAppTasksDecorator} from "../src/decorator";
+import {IApp, IAppContext} from "../src/interfaces";
 import {AppTasks} from "../src/gulpApps";
 
 describe('decorator', ()=> {
@@ -8,7 +8,7 @@ describe('decorator', ()=> {
     let mockRunSeq: Function;
     let definedTasks : {[taskName : string] : { deps: string[], fn : Function}};
     let mockApp : IApp;
-    let GulpApps : AppTasksDecorator<IApp>;
+    let GulpApps : IAppTasksDecorator<IApp>;
     let mockConverter: (app, task) => string;
 
     beforeEach(()=> {

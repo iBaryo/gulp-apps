@@ -1,15 +1,15 @@
 import {AppTasks} from "./gulpApps";
 import {IApp, TaskNameConverter, ITaskOf} from "./interfaces";
 
-export interface AppTasksDecorator<T extends IApp> {
+export interface IAppTasksDecorator<T extends IApp> {
     (): ClassDecorator;
     task(dependencies?: string[], taskName?: string): MethodDecorator;
     getTasks: ()=>AppTasks<T>;
 }
 
-export function createDecorator<T extends IApp>(gulp, runSeq, taskNameConverter?: TaskNameConverter): AppTasksDecorator<T> {
+export function createDecorator<T extends IApp>(gulp, runSeq, taskNameConverter?: TaskNameConverter): IAppTasksDecorator<T> {
     let appTasks: AppTasks<T>;
-    const decorator = <AppTasksDecorator<T>>function () {
+    const decorator = <IAppTasksDecorator<T>>function () {
         return function (target) {
             appTasks = new AppTasks<T>(gulp, runSeq, target, taskNameConverter);
         }

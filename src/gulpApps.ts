@@ -31,7 +31,7 @@ export class AppTasks<T extends IApp> {
     private getGulpTasks(): ITaskOf<T>[] {
         return Object.getOwnPropertyNames(this._tasksClass.prototype)
             .reduce((tasks, prop) => {
-                const candidate = this._tasksClass.prototype[prop] as Function&ITaskOf<T>;
+                const candidate = this._tasksClass.prototype[prop] as ITaskOf<T>;
                 if (typeof candidate == 'function' && candidate.isPublicTask)
                     tasks.push(candidate);
 
