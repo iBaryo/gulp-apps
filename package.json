@@ -1,7 +1,7 @@
 {
   "name": "gulp-apps",
   "version": "1.0.8",
-  "description": "running same apps for multiple apps",
+  "description": "running same tasks template for multiple apps",
   "main": "index.js",
   "scripts": {
     "build": "gulp compile",
