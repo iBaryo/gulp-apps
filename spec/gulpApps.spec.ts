@@ -124,6 +124,20 @@ describe('gulp-apps', () => {
                             done();
                         });
                 });
+
+                it('should be able to run several tasks', (done)=> {
+                    taskRunner.run(taskName, taskName, [taskName, taskName])
+                        .then(()=> {
+                            expect(mockRunSeq).toHaveBeenCalledTimes(1);
+                            const runSeqCall = (mockRunSeq as Spy).calls.mostRecent();
+                            const appTaskName = mockConverter(mockApp.name, taskName);
+                            expect(runSeqCall.args[0]).toBe(appTaskName);
+                            expect(runSeqCall.args[1]).toBe(appTaskName);
+                            expect(runSeqCall.args[2]).toEqual(Array(2).fill(appTaskName));
+                            expect(runSeqCall.args[3]).toEqual(jasmine.any(Function));
+                            done();
+                        });
+                });
             });
         });
 

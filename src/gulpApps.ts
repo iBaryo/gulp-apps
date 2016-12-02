@@ -1,5 +1,5 @@
 import {
-    ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner, IAppContextClass, RunTaskFunction, IAppContext
+    ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner, IAppContextClass, RunTaskFunction, IAppContext, Tasks
 } from "./interfaces";
 import {ITaskOf} from "./interfaces";
 
@@ -73,15 +73,25 @@ export class AppTasks<T extends IApp> {
 
         if (!_appRunners[app.name]) {
 
-            const appContext = this.createAppContext(app, (task : string) =>
-                new Promise<void>((resolve, reject) =>
-                    this._runSeq(nameConverter(task), e => e ? reject(e) : resolve())
-                )
+            const nameConverter = (taskName : string) => this._taskNameConverter(app.name, taskName);
+
+            const appContext = this.createAppContext(app, (...tasks : Tasks[]) =>
+                new Promise<void>((resolve, reject) => {
+                    tasks.push((e => e ? reject(e) : resolve()) as any);
+
+                    this._runSeq.apply(null, tasks.map(task => {
+                        if (typeof  task == 'string')
+                            return nameConverter(task);
+                        else if (task instanceof Array)
+                            return task.map(t => nameConverter(t));
+                        else
+                            return task;
+                    }));
+                })
             );
 
             _appRunners[app.name] = appContext;
 
-            const nameConverter = (taskName : string) => this._taskNameConverter(app.name, taskName);
 
             this.getGulpTasks().forEach(task =>     // maybe cache gulpTasks?
                 this._gulp.task(

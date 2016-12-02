@@ -21,8 +21,10 @@ export interface  ITaskGroupRunner extends ITaskRunner {
 }
 
 export interface RunTaskFunction {
-    (task : string) : Promise<any>;
+    (...tasks : Tasks[]) : Promise<any>;
 }
+
+export type Tasks = string|string[];
 
 export interface IGulpTask {
     taskName : string;
