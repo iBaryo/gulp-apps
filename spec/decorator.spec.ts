@@ -2,6 +2,7 @@ import {createDecorator} from "../src/decorator";
 import {IAppTasksDecorator} from "../src/decorator";
 import {IApp, IAppContext, RunTaskFunction} from "../src/interfaces";
 import {AppTasks} from "../src/gulpApps";
+import any = jasmine.any;
 
 describe('decorator', ()=> {
     let mockGulp;
@@ -169,11 +170,14 @@ describe('decorator', ()=> {
                 constructor(public app : IApp) {
                     expect(this.app).toBe(mockApp);
                     expect(this.run).toBeUndefined();
+
+                    delete this.app;
                 }
 
                 @GulpApps.task()
                 public task() {
                     expect(this.run).toEqual(jasmine.any(Function));
+                    expect(this.app).toBeUndefined();
                     done();
                 }
             }
@@ -183,13 +187,20 @@ describe('decorator', ()=> {
         it('should pass app and runner to constructor', (done)=> {
             @GulpApps()
             class Tasks implements IAppContext<IApp> {
+                private _origRun;
                 constructor(public app : IApp, public run : RunTaskFunction) {
                     expect(this.app).toBe(mockApp);
                     expect(this.run).toEqual(jasmine.any(Function));
+
+                    delete this.app;
+                    this._origRun = this.run;
+                    this.run = (()=> this.task()) as any;
                 }
 
                 @GulpApps.task()
                 public task() {
+                    expect(this.app).toBeUndefined();
+                    expect(this.run).not.toBe(this._origRun);
                     done();
                 }
             }
