@@ -5,15 +5,15 @@ import {AppTasks} from "../src/gulpApps";
 
 describe('decorator', ()=> {
     let mockGulp;
-    let mockRunSeq: Function;
-    let definedTasks : {[taskName : string] : { deps: string[], fn : Function}};
+    let mockRunSeq : Function;
+    let definedTasks : {[taskName : string] : { deps : string[], fn : Function}};
     let mockApp : IApp;
     let GulpApps : IAppTasksDecorator<IApp>;
-    let mockConverter: (app, task) => string;
+    let mockConverter : (app, task) => string;
 
     beforeEach(()=> {
         AppTasks.clear();
-        mockApp = {name:'app'};
+        mockApp = {name: 'app'};
         definedTasks = {};
         mockGulp = {
             task: (name, deps, fn) => {
@@ -22,10 +22,10 @@ describe('decorator', ()=> {
         };
         mockRunSeq = (...args) => {
             if (definedTasks[args[0]].fn.length > 0)
-                definedTasks[args[0]].fn.call(null, args[args.length-1]);
+                definedTasks[args[0]].fn.call(null, args[args.length - 1]);
             else {
                 definedTasks[args[0]].fn.call(null);
-                args[args.length-1]();
+                args[args.length - 1]();
             }
         };
         mockConverter = jasmine.createSpy('converter').and.callFake((app, task) => task);
@@ -35,7 +35,7 @@ describe('decorator', ()=> {
 
     it('should add task according to method taskName', ()=> {
         @GulpApps()
-        class Tasks implements IAppContext<IApp>{
+        class Tasks implements IAppContext<IApp> {
             public app : IApp;
             public run : RunTaskFunction;
 
@@ -53,12 +53,13 @@ describe('decorator', ()=> {
         const deps = ['task'];
 
         @GulpApps()
-        class Tasks implements IAppContext<IApp>{
+        class Tasks implements IAppContext<IApp> {
             public app : IApp;
             public run : RunTaskFunction;
 
             @GulpApps.task(deps)
-            public taskWithDependencies() {}
+            public taskWithDependencies() {
+            }
         }
         GulpApps.getTasks().for(mockApp);
 
@@ -67,11 +68,13 @@ describe('decorator', ()=> {
 
     it('should add task with different taskName', ()=> {
         @GulpApps()
-        class Tasks implements IAppContext<IApp>{
+        class Tasks implements IAppContext<IApp> {
             public app : IApp;
             public run : RunTaskFunction;
+
             @GulpApps.task(['task'], 'different-taskName')
-            public taskWithDependencies() {}
+            public taskWithDependencies() {
+            }
         }
 
         GulpApps.getTasks().for(mockApp);
@@ -80,7 +83,7 @@ describe('decorator', ()=> {
 
     it('should allow access to all methods in class', (done)=> {
         @GulpApps()
-        class Tasks implements IAppContext<IApp>{
+        class Tasks implements IAppContext<IApp> {
             public app : IApp;
             public run : RunTaskFunction;
 
@@ -99,7 +102,7 @@ describe('decorator', ()=> {
 
     it('should expose app context', (done)=> {
         @GulpApps()
-        class Tasks implements IAppContext<IApp>{
+        class Tasks implements IAppContext<IApp> {
             public app : IApp;
             public run : RunTaskFunction;
 
@@ -119,7 +122,7 @@ describe('decorator', ()=> {
 
     it('should expose task runner', (done)=> {
         @GulpApps()
-        class Tasks implements IAppContext<IApp>{
+        class Tasks implements IAppContext<IApp> {
             public app : IApp;
             public run : RunTaskFunction;
             public spy = jasmine.createSpy('other task');
@@ -139,5 +142,59 @@ describe('decorator', ()=> {
         }
 
         GulpApps.getTasks().for(mockApp).run('task');
+    });
+
+    describe('constructor overloading', ()=> {
+        it('should inject app and runner directly to instance when ctor does not have parameters', (done)=> {
+            @GulpApps()
+            class Tasks implements IAppContext<IApp> {
+                public app : IApp;
+                public run : RunTaskFunction;
+
+                @GulpApps.task()
+                public task() {
+                    expect(this.app).toBe(mockApp);
+                    expect(this.run).toEqual(jasmine.any(Function));
+                    done();
+                }
+            }
+
+            GulpApps.getTasks().for(mockApp).run('task');
+        });
+        it('should pass app to constructor and inject runner directly to instance', (done)=> {
+            @GulpApps()
+            class Tasks implements IAppContext<IApp> {
+                public run : RunTaskFunction;
+
+                constructor(public app : IApp) {
+                    expect(this.app).toBe(mockApp);
+                    expect(this.run).toBeUndefined();
+                }
+
+                @GulpApps.task()
+                public task() {
+                    expect(this.run).toEqual(jasmine.any(Function));
+                    done();
+                }
+            }
+
+            GulpApps.getTasks().for(mockApp).run('task');
+        });
+        it('should pass app and runner to constructor', (done)=> {
+            @GulpApps()
+            class Tasks implements IAppContext<IApp> {
+                constructor(public app : IApp, public run : RunTaskFunction) {
+                    expect(this.app).toBe(mockApp);
+                    expect(this.run).toEqual(jasmine.any(Function));
+                }
+
+                @GulpApps.task()
+                public task() {
+                    done();
+                }
+            }
+
+            GulpApps.getTasks().for(mockApp).run('task');
+        });
     });
 });

@@ -1,5 +1,5 @@
 import {
-    ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner, IAppContextClass, RunTaskFunction
+    ITaskRunner, TaskNameConverter, ITask, IApp, ITaskGroupRunner, IAppContextClass, RunTaskFunction, IAppContext
 } from "./interfaces";
 import {ITaskOf} from "./interfaces";
 
@@ -73,11 +73,11 @@ export class AppTasks<T extends IApp> {
 
         if (!_appRunners[app.name]) {
 
-            const appContext = new this._tasksClass();
-            appContext.app = app;
-            appContext.run = (task : string) =>
+            const appContext = this.createAppContext(app, (task : string) =>
                 new Promise<void>((resolve, reject) =>
-                    this._runSeq(nameConverter(task), e => e ? reject(e) : resolve()));
+                    this._runSeq(nameConverter(task), e => e ? reject(e) : resolve())
+                )
+            );
 
             _appRunners[app.name] = appContext;
 
@@ -92,5 +92,26 @@ export class AppTasks<T extends IApp> {
             );
         }
         return _appRunners[app.name];
+    }
+
+    private createAppContext(app : T, runFn : RunTaskFunction) {
+        let appContext : IAppContext<T>;
+        switch (this._tasksClass.length) {
+            case 1:
+                appContext = new this._tasksClass(app);
+                appContext.run = runFn;
+                break;
+            case 2:
+                appContext = new this._tasksClass(app, runFn);
+                break;
+            case 0:
+            default:
+                appContext = new this._tasksClass();
+                appContext.app = app;
+                appContext.run = runFn;
+                break;
+        }
+
+        return appContext;
     }
 }

@@ -7,7 +7,7 @@ export interface IAppContext<T extends IApp> extends ITaskRunner {
 }
 
 export interface IAppContextClass<T extends IApp> {
-    new () : IAppContext<T>;
+    new (app? : T, run? : RunTaskFunction) : IAppContext<T>;
 }
 
 export type TaskNameConverter = (appName : string, taskName : string) => string;
