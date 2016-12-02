@@ -1,23 +1,23 @@
 export interface IApp {
-    name: string;
+    name : string;
 }
 
-export interface IAppContext<T extends IApp> {
+export interface IAppContext<T extends IApp> extends ITaskRunner {
     app : T;
 }
 
-    export interface IAppContextClass<T extends IApp> {
-    new (app : T) : IAppContext<T>;
+export interface IAppContextClass<T extends IApp> {
+    new () : IAppContext<T>;
 }
 
-export type TaskNameConverter = (appName: string, taskName: string) => string;
+export type TaskNameConverter = (appName : string, taskName : string) => string;
 
 export interface ITaskRunner {
-    run: RunTaskFunction;
+    run : RunTaskFunction;
 }
 
 export interface  ITaskGroupRunner extends ITaskRunner {
-    runInSequence: RunTaskFunction;
+    runInSequence : RunTaskFunction;
 }
 
 export interface RunTaskFunction {
@@ -25,18 +25,18 @@ export interface RunTaskFunction {
 }
 
 export interface IGulpTask {
-    taskName: string;
-    dependencies?: string[];
+    taskName : string;
+    dependencies? : string[];
 }
 
 export interface IAppTaskMethod<T extends IApp> {
-    (this: IAppContext<T>, done?: () => void) : void;
+    (this : IAppContext<T>, done? : () => void) : void;
 }
 
 export interface ITask<T extends IApp> extends IGulpTask {
-    fn: IAppTaskMethod<T>;
+    fn : IAppTaskMethod<T>;
 }
 
-export interface ITaskOf<T extends IApp> extends IGulpTask, IAppTaskMethod<T>  {
-    isPublicTask: boolean;
+export interface ITaskOf<T extends IApp> extends IGulpTask, IAppTaskMethod<T> {
+    isPublicTask : boolean;
 }

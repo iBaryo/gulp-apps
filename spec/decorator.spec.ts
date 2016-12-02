@@ -1,6 +1,6 @@
 import {createDecorator} from "../src/decorator";
 import {IAppTasksDecorator} from "../src/decorator";
-import {IApp, IAppContext} from "../src/interfaces";
+import {IApp, IAppContext, RunTaskFunction} from "../src/interfaces";
 import {AppTasks} from "../src/gulpApps";
 
 describe('decorator', ()=> {
@@ -20,7 +20,14 @@ describe('decorator', ()=> {
                 definedTasks[name] = {deps, fn};
             }
         };
-        mockRunSeq = (...args) => definedTasks[args[0]].fn.call(null, args[args.length-1]);
+        mockRunSeq = (...args) => {
+            if (definedTasks[args[0]].fn.length > 0)
+                definedTasks[args[0]].fn.call(null, args[args.length-1]);
+            else {
+                definedTasks[args[0]].fn.call(null);
+                args[args.length-1]();
+            }
+        };
         mockConverter = jasmine.createSpy('converter').and.callFake((app, task) => task);
 
         GulpApps = createDecorator<IApp>(mockGulp, mockRunSeq, mockConverter);
@@ -28,7 +35,10 @@ describe('decorator', ()=> {
 
     it('should add task according to method taskName', ()=> {
         @GulpApps()
-        class Tasks {
+        class Tasks implements IAppContext<IApp>{
+            public app : IApp;
+            public run : RunTaskFunction;
+
             @GulpApps.task()
             public task() {
             }
@@ -43,7 +53,10 @@ describe('decorator', ()=> {
         const deps = ['task'];
 
         @GulpApps()
-        class Tasks {
+        class Tasks implements IAppContext<IApp>{
+            public app : IApp;
+            public run : RunTaskFunction;
+
             @GulpApps.task(deps)
             public taskWithDependencies() {}
         }
@@ -54,7 +67,9 @@ describe('decorator', ()=> {
 
     it('should add task with different taskName', ()=> {
         @GulpApps()
-        class Tasks {
+        class Tasks implements IAppContext<IApp>{
+            public app : IApp;
+            public run : RunTaskFunction;
             @GulpApps.task(['task'], 'different-taskName')
             public taskWithDependencies() {}
         }
@@ -65,7 +80,10 @@ describe('decorator', ()=> {
 
     it('should allow access to all methods in class', (done)=> {
         @GulpApps()
-        class Tasks {
+        class Tasks implements IAppContext<IApp>{
+            public app : IApp;
+            public run : RunTaskFunction;
+
             @GulpApps.task()
             public task() {
                 this.privateMethod();
@@ -82,7 +100,8 @@ describe('decorator', ()=> {
     it('should expose app context', (done)=> {
         @GulpApps()
         class Tasks implements IAppContext<IApp>{
-            constructor(public app : IApp) {}
+            public app : IApp;
+            public run : RunTaskFunction;
 
             @GulpApps.task()
             public task() {
@@ -92,6 +111,30 @@ describe('decorator', ()=> {
             private privateMethod() {
                 expect(this.app).toBe(mockApp);
                 done();
+            }
+        }
+
+        GulpApps.getTasks().for(mockApp).run('task');
+    });
+
+    it('should expose task runner', (done)=> {
+        @GulpApps()
+        class Tasks implements IAppContext<IApp>{
+            public app : IApp;
+            public run : RunTaskFunction;
+            public spy = jasmine.createSpy('other task');
+
+            @GulpApps.task()
+            public task() {
+                this.run('otherTask').then(()=> {
+                    expect(this.spy).toHaveBeenCalled();
+                    done();
+                });
+            }
+
+            @GulpApps.task()
+            public otherTask() {
+                this.spy();
             }
         }
 
